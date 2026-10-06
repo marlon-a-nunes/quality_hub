@@ -31,27 +31,42 @@ class RegressoesView(APIView):
         return Response(CasoDeTesteSerializer(regredidos, many=True).data)
 
 
-class CasosEsquecidosView(APIView):
-    """Lista Casos de Teste sem nenhum Resultado de Execução nos últimos
-    N dias (padrão 30, via `?dias=`) — inclui os nunca executados. Objetivo:
-    achar casos "mortos" na biblioteca antes que deem falsa sensação de
-    cobertura.
+class CasosSemExecucaoRecenteView(APIView):
+    """Lista Casos de Teste sem resultado "Passou" ou "Falhou" nos últimos
+    N dias (padrão 30, via `?dias=`) — inclui os nunca executados de
+    verdade. "Bloqueado"/"Não Executado" não contam como execução (bug
+    encontrado em revisão: resultado padrão "N" escondia caso da lista,
+    mesmo sem ninguém ter testado nada). `?dias=` inválido devolve 400,
+    não derruba a API.
+
+    Nome deliberadamente neutro (não "esquecidos"/"mortos"): o dado só
+    prova "sem execução recente", não a causa — pode ser caso negligenciado
+    ou caso de baixa prioridade que legitimamente roda pouco. Quem lê a
+    lista decide o que fazer com cada item.
     """
 
     def get(self, request):
-        quantidade_dias = int(request.query_params.get("dias", 30))
+        try:
+            quantidade_dias = int(request.query_params.get("dias", 30))
+        except ValueError:
+            return Response({"erro": "dias precisa ser um número"}, status=400)
+
         calculo_data_corte = timezone.now() - timedelta(quantidade_dias)
 
-        casos_esquecidos = []
+        casos_sem_execucao_recente = []
 
         for caso in CasoDeTeste.objects.all():
-            caso_esquecido = ResultadoExecucao.objects.filter(
-                caso_de_teste=caso, execucao__data_execucao__gte=calculo_data_corte
+            execucao_recente = ResultadoExecucao.objects.filter(
+                caso_de_teste=caso,
+                execucao__data_execucao__gte=calculo_data_corte,
+                status_execucao__in=["P", "F"],
             ).order_by("execucao__data_execucao")
 
-            if not caso_esquecido.exists():
-                casos_esquecidos.append(caso)
-        return Response(CasoDeTesteSerializer(casos_esquecidos, many=True).data)
+            if not execucao_recente.exists():
+                casos_sem_execucao_recente.append(caso)
+        return Response(
+            CasoDeTesteSerializer(casos_sem_execucao_recente, many=True).data
+        )
 
 
 class ResultadosComFalhaView(APIView):

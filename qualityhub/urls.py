@@ -8,7 +8,7 @@ from planos_teste.views import PlanoDeTesteViewSet
 from execucoes.views import ExecucaoViewSet, ResultadoExecucaoViewSet
 from documentos.views import DocumentoViewSet, CategoriaDocumentoViewSet
 from casos_teste.views_relatorios import (
-    CasosEsquecidosView,
+    CasosSemExecucaoRecenteView,
     RegressoesView,
     ResultadosComFalhaView,
 )
@@ -29,6 +29,9 @@ urlpatterns = [
     path("admin/", admin.site.urls),
     path("api/", include(router.urls)),
     path("api/regressoes/", RegressoesView.as_view()),
-    path("api/casos-esquecidos/", CasosEsquecidosView.as_view()),
+    path(
+        "api/casos-sem-execucao-recente/",
+        CasosSemExecucaoRecenteView.as_view(),
+    ),
     path("api/execucao/<int:execucao_id>/falhas/", ResultadosComFalhaView.as_view()),
 ]

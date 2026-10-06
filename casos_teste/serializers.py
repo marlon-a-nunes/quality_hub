@@ -26,3 +26,5 @@ class CasoDeTesteSerializer(serializers.ModelSerializer):
     class Meta:
         model = CasoDeTeste
         fields = "__all__"
+
+        extra_kwargs = {"teste_atualizado_em": {"read_only": True}}

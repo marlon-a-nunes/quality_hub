@@ -18,17 +18,27 @@ class Execucao(models.Model):
     atualizado_em = models.DateTimeField(auto_now=True)
 
     def calcular_cobertura_execucao(self):
-        """% dos Casos de Teste do Plano que já têm Resultado de Execução
+        """% dos Casos de Teste do Plano com resultado "Passou" ou "Falhou"
         **nesta** Execução específica (não no Plano inteiro, nem somando
         outras rodadas do mesmo Plano) — mede o progresso desta rodada.
-        Devolve 0 se o Plano não tiver nenhum caso.
+        "Bloqueado"/"Não Executado" não contam como cobertos (bug
+        encontrado em revisão: resultado padrão "N" dava cobertura
+        inflada sem ninguém ter executado nada). Só conta resultado de
+        caso que ainda está no Plano (bug encontrado em revisão: resultado
+        de caso fora do Plano, ou removido do Plano depois, inflava a
+        cobertura acima de 100%). Devolve 0 se o Plano não tiver nenhum
+        caso.
         """
         total_de_casos = self.plano_de_teste.casos_de_teste.count()
         if total_de_casos == 0:
             return total_de_casos
 
         else:
-            casos_executados = ResultadoExecucao.objects.filter(execucao=self).count()
+            casos_executados = ResultadoExecucao.objects.filter(
+                execucao=self,
+                status_execucao__in=["P", "F"],
+                caso_de_teste__in=self.plano_de_teste.casos_de_teste.all(),
+            ).count()
             cobertura = casos_executados / total_de_casos * 100
             return cobertura
 
