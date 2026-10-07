@@ -19,6 +19,15 @@ Formato tutorial socrático — regra explícita do Marlon: ele **não quer ser 
   negócio, e ele já validou esse modo antes.
 - Se em algum momento não estiver claro se algo é "conceito de negócio" (não mostrar
   pronto) ou "mecânica de ferramenta" (pode mostrar pronto), perguntar antes de decidir.
+- **Antes de qualquer construção linha a linha de uma mudança nova** (bug a corrigir,
+  método a criar): sempre fechar 3 coisas primeiro, nessa ordem, **cada uma suficiente
+  pra entender sozinha** (não depender de pergunta de volta do Marlon pra completar o
+  quadro) — regra que nasceu de feedback explícito dele numa sessão onde o contexto
+  ficou fragmentado demais, exigindo pergunta atrás de pergunta só pra entender "o que
+  fazer e onde": (1) **o que está acontecendo** — o problema, concreto, com exemplo;
+  (2) **onde muda** — arquivo, classe, método, e se é método **novo** ou **alteração**
+  de um que já existe; (3) **por que ali** — por que esse é o lugar certo, não outro.
+  Só depois dos 3 pontos fechados, começar a construção passo a passo.
 - **Comentários no código**: Marlon quer código comentado (breve, explicando o "porquê"
   de mecânica Django/Python — `Meta`, `on_delete`, `choices`, `__str__`, etc. — não
   restating o óbvio). Código já existente até a Fase 4 foi comentado numa passada só.
@@ -493,6 +502,23 @@ Decisões conscientes de escopo:
       a partir dos serializers/viewsets já existentes, sem escrever na mão.
 - [ ] Fase 9 — Testes automatizados do próprio sistema
 - [ ] Fase 10 — Deploy
+
+## Como usar as APIs de relatório (Fase 7)
+
+Registro provisório — "quem usa, quando, que decisão guia" pra cada relatório
+da Fase 7. Fica aqui até a Fase 8 existir de verdade (`drf-spectacular` vai
+gerar isso automaticamente, a partir de docstring/description de cada view —
+quando isso acontecer, essa seção vira redundante e pode sair daqui).
+
+| API | Quem usa | Quando/frequência | Decisão que guia |
+|---|---|---|---|
+| Regressões (lista) `/api/regressoes/` | QA/Tester | Antes de cada reunião de triagem (frequente) | "Esse caso quebrou — investigar agora" |
+| Regressões (contador) `qtd_regressoes` | QA Lead | Periódico (ex: a cada 15 dias) | "Esse fluxo é historicamente instável — vale hardening" |
+| Cobertura de Execução `qtd_cobertura_execucao` | Quem executa a rodada | Durante a rodada (enquanto ativa) | "Quanto falta pra fechar essa rodada?" |
+| Casos Sem Execução Recente `?dias=` | QA Lead | Periódico (ex: mensal) | "Esse caso parado ainda é relevante, ou está obsoleto?" |
+| Resultados com Falha `/api/execucao/<id>/falhas/` | QA + Dev juntos | Logo depois de cada Execução (por evento) | "O que falhou nessa rodada, pro Dev resolver" |
+| Documentação por Módulo `cobertura_documentacao` | QA Lead / Tech Lead | Periódico, mais espaçado (por sprint/release) | "Documentação acompanha o ritmo de desenvolvimento?" |
+| Plano ordenado por prioridade `casos_ordenados` | Quem monta a rodada | No momento de iniciar uma execução | "Pouco tempo — rodar os de prioridade Alta primeiro" |
 
 ## Visão de longo prazo (pós-MVP, "Quality Hub 2.0")
 

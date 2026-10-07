@@ -11,23 +11,34 @@ from execucoes.serializers import ResultadoExecucaoSerializer
 
 
 class RegressoesView(APIView):
+    """Lista Casos de Teste "regredidos agora": resultado mais recente é
+    "Falhou" E o resultado imediatamente anterior é "Passou" (mesma regra
+    de `CasoDeTeste.contar_regressoes` — bug encontrado em revisão: antes,
+    a lista aceitava QUALQUER "Passou" anterior, não só o imediatamente
+    anterior, e por isso podia discordar do contador, que já usava a regra
+    estrita). Ignora resultados anteriores à última edição relevante do
+    caso (`teste_atualizado_em`).
+    """
+
     def get(self, request):
         regredidos = []
 
         for caso in CasoDeTeste.objects.all():
-            mais_recente = (
-                ResultadoExecucao.objects.filter(caso_de_teste=caso)
-                .order_by("-execucao__data_execucao")
-                .first()
-            )
+            resultados = ResultadoExecucao.objects.filter(
+                caso_de_teste=caso,
+                execucao__data_execucao__gte=caso.teste_atualizado_em,
+            ).order_by("-execucao__data_execucao")
 
-            if mais_recente and mais_recente.status_execucao == "F":
-                existe_passou_antes = ResultadoExecucao.objects.filter(
-                    caso_de_teste=caso, status_execucao="P"
-                ).exists()
+            mais_recente = resultados.first()
+            anterior = resultados[1:2].first()
 
-                if existe_passou_antes:
-                    regredidos.append(caso)
+            if (
+                mais_recente
+                and mais_recente.status_execucao == "F"
+                and anterior
+                and anterior.status_execucao == "P"
+            ):
+                regredidos.append(caso)
         return Response(CasoDeTesteSerializer(regredidos, many=True).data)
 
 

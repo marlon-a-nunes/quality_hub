@@ -23,6 +23,17 @@ class CasoDeTesteSerializer(serializers.ModelSerializer):
     def get_qtd_regressoes_apos_edicao(self, caso):
         return caso.contar_regressoes_apos_edicao()
 
+    def validate(self, data):
+        """Impede Caso de Teste com Módulo de um Projeto diferente do
+        Projeto do próprio Caso (bug encontrado em revisão: nada impedia
+        essa inconsistência antes).
+        """
+        if data["modulo"].projeto != data["projeto"]:
+            raise serializers.ValidationError(
+                "O módulo informado pertence a um Projeto diferente do Projeto do Caso de Teste."
+            )
+        return data
+
     class Meta:
         model = CasoDeTeste
         fields = "__all__"

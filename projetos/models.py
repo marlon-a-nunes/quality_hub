@@ -23,11 +23,17 @@ class Projeto(models.Model):
         categorias marcadas como obrigatórias (`CategoriaDocumento.
         obrigatoria=True`) — ter só uma das categorias não conta como
         documentado. Devolve 0 se o Projeto não tiver módulo nenhum.
+        Devolve `None` se não existir nenhuma categoria obrigatória
+        configurada (bug encontrado em revisão: sem isso, "nenhuma
+        categoria obrigatória" dava 100% — verdadeiro só porque não
+        havia nenhuma categoria pra falhar, não porque havia documentação).
         """
         from documentos.models import Documento, CategoriaDocumento
 
         modulos = self.modulo_set.all()
         categorias_obrigatorias = CategoriaDocumento.objects.filter(obrigatoria=True)
+        if not categorias_obrigatorias.exists():
+            return None
 
         modulos_documentados = 0
         total_de_modulos = modulos.count()
