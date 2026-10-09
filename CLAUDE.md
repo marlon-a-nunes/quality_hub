@@ -514,10 +514,26 @@ Decisões conscientes de escopo:
       sem histórico ou com só 1 resultado; múltiplas regressões; POST
       tentando sobrescrever `teste_atualizado_em`; Caso nunca executado
       aparece; Caso com execução recente não aparece; fronteira do
-      `?dias=`) fica pro backlog, revisar se sobrar tempo. Ainda faltam
-      testes de `execucoes` (Cobertura de Execução), `projetos`
-      (Documentação por módulo) e `planos_teste` (validação cruzada do
-      Plano) — mesmos bugs da Fase 7, outros apps.
+      `?dias=`) fica pro backlog, revisar se sobrar tempo.
+      - [ ] **Backlog — testes essenciais dos outros apps** (mesmo critério
+            de priorização usado em `casos_teste`: só cenário que prova
+            um bug já corrigido na revisão, ou regra central do método;
+            nenhum model novo, só `tests.py` por app):
+            - `execucoes/tests.py` — `Execucao.calcular_cobertura_execucao()`
+              (Bug 2): (1) Plano com 2 Casos, um com resultado "P"/"F" e
+              outro "N" → cobertura 50%, não 100% (prova que "N"/"B" não
+              conta como executado); (2) resultado de um Caso que não
+              está mais no Plano não entra na conta; (3) Plano sem nenhum
+              Caso → `0`, sem erro de divisão por zero.
+            - `projetos/tests.py` — `Projeto.calcular_cobertura_documentacao()`
+              (Bug 4): (1) Projeto sem nenhuma `CategoriaDocumento`
+              marcada `obrigatoria` → devolve `None` (não `100.0` —
+              esse era o bug da "verdade vazia"); (2) Módulo com só
+              **parte** das categorias obrigatórias → não conta como
+              documentado; (3) Módulo com **todas** → conta.
+            - `planos_teste/tests.py` — `PlanoDeTesteSerializer.validate()`
+              (Bug 5b): POST de Plano com algum `caso_de_teste` de
+              Projeto diferente do `projeto` do Plano → `400`.
       - [x] `pytest`/`pytest-django` instalados e configurados
             (`pytest.ini`, `DJANGO_SETTINGS_MODULE` apontando pro
             projeto) — permite rodar os testes (que continuam sendo
