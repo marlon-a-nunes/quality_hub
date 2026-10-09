@@ -11,8 +11,10 @@ db.sqlite3
 __pycache__/
 *.pyc
 
+# Pytest
+.pytest_cache/
+
 # Editor / SO
-.vscode/
 .idea/
 *.swp
 .DS_Store

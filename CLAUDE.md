@@ -500,7 +500,34 @@ Decisões conscientes de escopo:
       (comportamento, campos obrigatório/opcional) via `drf-spectacular` —
       gera documentação interativa (estilo Swagger/OpenAPI) **automaticamente**
       a partir dos serializers/viewsets já existentes, sem escrever na mão.
-- [ ] Fase 9 — Testes automatizados do próprio sistema
+- [ ] Fase 9 — Testes automatizados do próprio sistema. Em andamento:
+      testes de regressão escritos pra `casos_teste` (model `Modulo`,
+      `CasoDeTeste.save()`/`teste_atualizado_em`, `contar_regressoes()`,
+      `contar_regressoes_apos_edicao()`, validação cruzada Projeto/Módulo
+      no serializer, `RegressoesView`, `CasosSemExecucaoRecenteView`) em
+      `casos_teste/tests.py`, via `django.test.TestCase` — 16 métodos, 11
+      cenários **essenciais** (cada um prova que um bug real já corrigido
+      na revisão do gestor não volta, ou cobre uma regra central do
+      método). Critério usado pra priorizar: "testa um bug já encontrado/
+      regra central" entra agora; "edge case genérico sem bug conhecido
+      por trás" (8 cenários: editar campo irrelevante não muda nada; Caso
+      sem histórico ou com só 1 resultado; múltiplas regressões; POST
+      tentando sobrescrever `teste_atualizado_em`; Caso nunca executado
+      aparece; Caso com execução recente não aparece; fronteira do
+      `?dias=`) fica pro backlog, revisar se sobrar tempo. Ainda faltam
+      testes de `execucoes` (Cobertura de Execução), `projetos`
+      (Documentação por módulo) e `planos_teste` (validação cruzada do
+      Plano) — mesmos bugs da Fase 7, outros apps.
+      - [x] `pytest`/`pytest-django` instalados e configurados
+            (`pytest.ini`, `DJANGO_SETTINGS_MODULE` apontando pro
+            projeto) — permite rodar os testes (que continuam sendo
+            `TestCase` padrão do Django, sem mudar nada neles) pelo
+            painel **Testing** do VSCode, com ícone de play por método
+            (`.vscode/settings.json`: `python.testing.pytestEnabled`).
+            `launch.json` também criado, pra rodar/debugar via `manage.py
+            test` com breakpoint. Os dois arquivos do VSCode foram
+            versionados de propósito (decisão do Marlon: configuração do
+            editor compartilhada, não fica de fora do Git).
 - [ ] Fase 10 — Deploy
 
 ## Como usar as APIs de relatório (Fase 7)
@@ -519,6 +546,36 @@ quando isso acontecer, essa seção vira redundante e pode sair daqui).
 | Resultados com Falha `/api/execucao/<id>/falhas/` | QA + Dev juntos | Logo depois de cada Execução (por evento) | "O que falhou nessa rodada, pro Dev resolver" |
 | Documentação por Módulo `cobertura_documentacao` | QA Lead / Tech Lead | Periódico, mais espaçado (por sprint/release) | "Documentação acompanha o ritmo de desenvolvimento?" |
 | Plano ordenado por prioridade `casos_ordenados` | Quem monta a rodada | No momento de iniciar uma execução | "Pouco tempo — rodar os de prioridade Alta primeiro" |
+
+## Backlog leve — pequenas features úteis (ainda não escopadas)
+
+Diferente da "Visão de longo prazo" (iniciativas grandes, pós-MVP), isso aqui
+são features pequenas, que cabem dentro do projeto atual quando sobrar tempo
+— registradas pra não esquecer, sem compromisso de quando fazer. Em comum:
+reduzem trabalho repetitivo de quem usa o sistema no dia a dia.
+
+- **Duplicar Caso de Teste** — endpoint novo (ex: `POST /api/caso-de-teste/
+  <id>/duplicar/`), copia os campos do caso existente pra um novo registro
+  (sem copiar `id`, `criado_em`, etc.). É trabalho de **backend**, mesmo
+  que acionado pelo frontend depois — lógica de cópia não deveria viver só
+  no cliente.
+- **Duplicar Plano de Teste** — mesma ideia, copiando a seleção de
+  `casos_de_teste` pra um Plano novo, em vez de remontar a lista toda vez.
+- **Duplicar Caso de Teste pra outro Módulo/Projeto** — dá um caminho mais
+  prático pra uma limitação já documentada (reuso de caso entre Projetos
+  diferentes não é suportado no MVP, "contorna copiando manualmente por
+  enquanto") — a duplicação passaria a permitir escolher o Módulo/Projeto
+  de destino.
+- **Ações em lote** — ex: marcar vários Casos como "Obsoleto" de uma vez,
+  ou adicionar vários Casos a um Plano junto, sem repetir ação um por um.
+- **Busca/filtro avançado de Casos de Teste** — por módulo, prioridade,
+  status, texto no título. Fica mais necessário conforme a biblioteca
+  cresce; também é base que a Fase 6b (frontend) provavelmente vai
+  precisar de qualquer forma.
+- **Exportar Plano de Teste/Caso de Teste** (PDF ou CSV) — útil pra
+  compartilhar com alguém sem acesso ao sistema (ex: cliente revisando
+  antes de ter login/acesso pleno) — conecta com a ideia de "cliente como
+  revisor" já discutida.
 
 ## Visão de longo prazo (pós-MVP, "Quality Hub 2.0")
 

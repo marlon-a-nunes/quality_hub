@@ -1,0 +1,14 @@
+{
+  "version": "0.2.0",
+  "configurations": [
+    {
+      "name": "Django: Rodar testes",
+      "type": "debugpy",
+      "request": "launch",
+      "program": "${workspaceFolder}/manage.py",
+      "args": ["test", "casos_teste", "-v", "2"],
+      "django": true,
+      "console": "integratedTerminal"
+    }
+  ]
+}
